@@ -1,0 +1,46 @@
+from scapy.all import sniff, IP, TCP, UDP, ARP, ICMP
+from datetime import datetime
+
+def packet_callback(packet):
+    """
+    Callback function to process each captured packet.
+    """
+    if IP in packet:
+        ip_src = packet[IP].src
+        ip_dst = packet[IP].dst
+        proto = packet[IP].proto
+
+        # Extracting protocol names
+        if proto == 6:
+            protocol = "TCP"
+        elif proto == 17:
+            protocol = "UDP"
+        elif proto == 1:
+            protocol = "ICMP"
+        else:
+            protocol = "Other"
+
+        # Extracting port numbers (if applicable)
+        src_port = packet[TCP].sport if TCP in packet else packet[UDP].sport if UDP in packet else None
+        dst_port = packet[TCP].dport if TCP in packet else packet[UDP].dport if UDP in packet else None
+
+        print(f"{datetime.now()} - Protocol: {protocol} | Source IP: {ip_src} | Destination IP: {ip_dst} | Source Port: {src_port} | Destination Port: {dst_port}")
+    
+    elif ARP in packet:
+        print(f"{datetime.now()} - ARP Packet: {packet.summary()}")
+
+    elif ICMP in packet:
+        print(f"{datetime.now()} - ICMP Packet: {packet.summary()}")
+
+def start_sniffing(interface):
+    """
+    Start sniffing on the specified network interface.
+    """
+    print(f"[*] Starting network sniffing on {interface}...")
+    sniff(iface=interface, prn=packet_callback, store=False)
+
+# Specify the network interface to sniff on (e.g., "eth0", "wlan0", etc.)
+interface = "Wi-Fi"  # Replace with your actual interface
+
+# Start sniffing in the next cell
+start_sniffing(interface)
